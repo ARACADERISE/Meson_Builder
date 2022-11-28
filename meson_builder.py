@@ -25,6 +25,7 @@ class MesonBuilder:
 
         # Dependencies
         self.deps = []
+        self.dep_name = None
 
         # Executable name
         self.project_exe_name = None
@@ -56,6 +57,13 @@ class MesonBuilder:
                     i += 1
                     self.project_language = sys.argv[i]
                     continue
+                if sys.argv[i] == '-pdeps':
+                    i += 1
+                    a = sys.argv[i].split(',')
+                    self.dep_name = a[0]
+                    del a[0]
+                    self.deps = a
+                    continue
 
             if self.project_name == None or self.project_exe_name == None:
                 exit(f"Expected \u001b[33;1m-pname project_name\u001b[37;1m and \u001b[33;1m-pfile project_source_file\u001b[37;1m\n")
@@ -72,10 +80,22 @@ class MesonBuilder:
         exe = f"\nexecutable('demo', '{self.project_file}')\n"
 
         f.write(project)
+        if len(self.deps) > 0:
+            if len(self.deps) == 1:
+                print(f"{self.dep_name} = [{self.deps[i] for i in range(len(self.deps))}]")
+            if len(self.deps) > 1:
+                f.write(f"\n{self.dep_name} = [")
+                for i in range(len(self.deps)):
+                    if not i == len(self.deps) - 1:
+                        f.write("dependency('"+self.deps[i]+"'),")
+                    else:
+                        f.write("dependency('"+self.deps[i]+"')")
+                f.write(']\n')
         f.write(exe)
         f.close()
 
     def init_builddir(self):
+        print(self.dep_name, self.deps)
         subprocess.run('meson setup builddir', shell=True, cwd=os.getcwd())
         subprocess.run('cd builddir && ninja', shell=True, cwd=os.getcwd())
 
