@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+from pathlib import Path
 
 REQUIRED_DIRS = ['builddir', 'compile']
 REQUIRED_FILES = ['meson.build']
@@ -62,6 +63,8 @@ class MesonBuilder:
             if self.project_language == None:
                 self.project_language = self.project_file[len(self.project_file)-1]
 
+            if not self.project_name == os.path.split(os.getcwd())[1]:
+                exit(f'The path \u001b[33;1m{Path.home()}/{self.project_name}\u001b[37;1m does not exist.\n')
     def init_meson_build_file(self):
         f = open('meson.build', 'w')
 
@@ -73,8 +76,8 @@ class MesonBuilder:
         f.close()
 
     def init_builddir(self):
-        os.system('meson setup builddir')
-        os.system('cd builddir && ninja')
+        subprocess.run('meson setup builddir', shell=True, cwd=os.getcwd())
+        subprocess.run('cd builddir && ninja', shell=True, cwd=os.getcwd())
 
 builder = MesonBuilder()
 builder.check_dirs()
